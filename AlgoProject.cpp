@@ -79,7 +79,7 @@ int AllDriversFinishThereJourney(vector<pair<int,int> >& check,vector<driver>& d
     int i=0;
     while(i<check.size())
     {
-        if(check[i].first == 0 || check[i].second < driverArr[i].assign.size())
+        if((driverArr[i].assign.size() > 0)  && ((check[i].first == 0 &&  check[i].second < driverArr[i].assign.size()) || (check[i].first==1 && driverArr[i].drop.size() > 0)))
         {
             return 0;
         }
@@ -95,6 +95,24 @@ void checkNotPicked()
         cout<<notPicked[i]<<" is not picked and due to lack of seats , sorry"<<endl;
         i=i+1;
     }
+}
+int findClosestTo(pair<int,int> a,vector<pair<int,int> > b)
+{
+    int i=0;
+    int min=INT_MAX;
+    int dist=0;
+    int index=-1;
+    while(i<b.size())
+    {
+        dist=absoluteDistance(a, b[i]);
+        if(dist<min)
+        {
+            min=dist;
+            index=i;
+        }
+        i=i+1;
+    }
+    return index;
 }
 void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<int,int> >& source,vector<pair<int,int> >& destination)
 {
@@ -113,11 +131,15 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
     int ind=-1;
     int pickup=-1;
     int min = INT_MAX;
+    int index1=-1;
     while(AllDriversFinishThereJourney(index,driverArr) == 0)
     {
         k=0;
         dist=0;
         min=INT_MAX;
+        pickup=-1;
+        ind=-1;
+        index1=-1;
         while(k<driverArr.size())
         {
             if(index[k].first == 0)
@@ -134,7 +156,6 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
                 {
                     min = dist;
                     ind=k;
-                    //cout<<"k is "<<k<<endl;
                     pickup=0;
                 }
             }
@@ -147,19 +168,20 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
                     k=k+1;
                     continue;
                 }
-                dist=absoluteDistance(p, driverArr[k].drop[index[k].second]);
+                int ind1=findClosestTo(p,driverArr[k].drop);
+                dist=absoluteDistance(p, driverArr[k].drop[index1]);
                 if(dist < min)
                 {
                     min = dist;
                     ind=k;
                     pickup=1;
+                    index1=ind1;
                 }
             }
             k=k+1;
         }
         if(pickup==0)
         {
-            
             driverArr[ind].is=driverArr[ind].assign[index[ind].second].first;
             driverArr[ind].js=driverArr[ind].assign[index[ind].second].second;
             int in=findIndex(source,driverArr[ind].assign[index[ind].second]);
@@ -178,18 +200,21 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
                 index[ind].second=0;
             }
         }
-        else
+        else if(pickup == 1)
         {
             //cout<<"check here okay"<<index[ind].second<<endl;
-            driverArr[ind].is=driverArr[ind].drop[index[ind].second].first;
-            driverArr[ind].js=driverArr[ind].drop[index[ind].second].second;
-            int in=findIndex(destination,driverArr[ind].drop[index[ind].second]);
+            if(index1 == -1)
+                cout<<"it -1 in index-1"<<endl;
+            driverArr[ind].is=driverArr[ind].drop[index1].first;
+            driverArr[ind].js=driverArr[ind].drop[index1].second;
+            int in=findIndex(destination,driverArr[ind].drop[index1]);
             if(in==-1)
             {
                  cout<<"its -1 from drop"<<endl;
             }
             cout<<driverArr[ind].name<<" is dropping "<<customerNames[in]<<endl;
-            index[ind].second=index[ind].second+1;
+            auto it=find(driverArr[ind].drop.begin(),driverArr[ind].drop.end(),driverArr[ind].drop[index1]);
+            driverArr[ind].drop.erase(it);
         }
     }
     checkNotPicked();
