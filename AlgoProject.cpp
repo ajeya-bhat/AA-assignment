@@ -63,6 +63,30 @@ int  findNearestDriverWithSeats(vector<driver>& driverArr,pair<int,int> a)
     }
     return index;
 }
+int findIndex(vector<pair<int,int> >& a ,pair<int,int> b)
+{
+    int i=0;
+    while(i<a.size())
+    {
+        if(a[i]==b)
+            return i;
+        i=i+1;
+    }
+    return -1;
+}
+int AllDriversFinishThereJourney(vector<pair<int,int> >& check,vector<driver>& driverArr)
+{
+    int i=0;
+    while(i<check.size())
+    {
+        if(check[i].first == 0 || check[i].second < driverArr[i].assign.size())
+        {
+            return 0;
+        }
+        i=i+1;
+    }
+    return 1;
+}
 void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<int,int> >& source,vector<pair<int,int> >& destination)
 {
     vector<pair<int,int> > index;
@@ -79,58 +103,75 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
     int dist=0;
     int ind=-1;
     int pickup=-1;
-    int min =INT_MAX;
-    while(k<driverArr.size())
+    int min = INT_MAX;
+    while(AllDriversFinishThereJourney(index,driverArr) == 0)
     {
-        if(index[k].first == 0)
+        k=0;
+        dist=0;
+        min=INT_MAX;
+        while(k<driverArr.size())
         {
-            pair<int,int> p;
-            //pair<int,int> q;
-            p=make_pair(driverArr[k].is,driverArr[k].js);
-            dist=absoluteDistance(p, driverArr[k].assign[index[k].second]);
-            if(dist < min)
+            if(index[k].first == 0)
             {
-                min = dist;
-                ind=k;
-                pickup=0;
+                pair<int,int> p;
+                p=make_pair(driverArr[k].is,driverArr[k].js);
+                dist=absoluteDistance(p, driverArr[k].assign[index[k].second]);
+                if(dist < min)
+                {
+                    min = dist;
+                    ind=k;
+                    //cout<<"k is "<<k<<endl;
+                    pickup=0;
+                }
+            }
+            else
+            {
+                pair<int,int> p;
+                p=make_pair(driverArr[k].is,driverArr[k].js);
+                if(index[k].first ==1 && index[k].second == driverArr[k].drop.size())
+                {
+                    k=k+1;
+                    continue;
+                }
+                dist=absoluteDistance(p, driverArr[k].drop[index[k].second]);
+                if(dist < min)
+                {
+                    min = dist;
+                    ind=k;
+                    pickup=1;
+                }
+            }
+            k=k+1;
+        }
+        if(pickup==0)
+        {
+            
+            driverArr[ind].is=driverArr[ind].assign[index[ind].second].first;
+            driverArr[ind].js=driverArr[ind].assign[index[ind].second].second;
+            int in=findIndex(source,driverArr[ind].assign[index[ind].second]);
+            if(in==-1)
+                cout<<"its -1"<<endl;
+            cout<<driverArr[ind].name<<" is picking up "<<customerNames[in]<<endl;
+            //cout<<"before= "<<index[ind].second<<endl;
+            index[ind].second=index[ind].second+1;
+            //cout<<"after= "<<index[ind].second<<endl;
+            if(index[ind].second == driverArr[ind].assign.size())
+            {
+                index[ind].first=1;
+                index[ind].second=0;
             }
         }
         else
         {
-           
-            pair<int,int> p;
-            //pair<int,int> q;
-            p=make_pair(driverArr[k].is,driverArr[k].js);
-            dist=absoluteDistance(p, driverArr[k].drop[index[k].second]);
-            if(dist < min)
-            {
-                min = dist;
-                ind=k;
-                pickup=1;
-            }
-            
+            //cout<<"check here okay"<<index[ind].second<<endl;
+            driverArr[ind].is=driverArr[ind].drop[index[ind].second].first;
+            driverArr[ind].js=driverArr[ind].drop[index[ind].second].second;
+            int in=findIndex(destination,driverArr[ind].drop[index[ind].second]);
+            if(in==-1)
+                cout<<"its -1"<<endl;
+            cout<<driverArr[ind].name<<" is dropping "<<customerNames[in]<<endl;
+            index[ind].second=index[ind].second+1;
         }
-        k=k+1;
-    }
-    if(pickup==0)
-    {
-        driverArr[ind].is=driverArr[ind].assign[index[ind].second].first;
-        driverArr[ind].js=driverArr[ind].assign[index[ind].second].second;
-        index[ind].second=index[ind].second+1;
-        if(index[ind].second == driverArr[ind].assign.size())
-        {
-            index[ind].first=1;
-            index[ind].second=0;
-        }
-        findIndex(source,driverArr)
-        cout<<driverArr[ind].name<<"is picking up "<<;
-    }
-    else
-    {
-        driverArr[ind].is=driverArr[ind].drop[index[ind].second].first;
-        driverArr[ind].js=driverArr[ind].drop[index[ind].second].second;
-        index[ind].second=index[ind].second+1;
-        cout<<driverArr[ind].name<<"is dropping "<<;
     }
 
 }
@@ -142,6 +183,10 @@ void assigningPassengers(vector<pair<int,int>>& source , vector<pair<int,int>>& 
         pair<int,int> p;
         p=source[i];
         int index=findNearestDriverWithSeats(driverArr,p);
+        if(index == -1)
+        {
+            
+        }
         driverArr[index].assign.push_back(p);
         driverArr[index].drop.push_back(destination[i]);
         driverArr[index].seats= driverArr[index].seats-1;
@@ -158,7 +203,7 @@ void assigningPassengers(vector<pair<int,int>>& source , vector<pair<int,int>>& 
         }
         j=j+1;
     }
-    travel(driverArr,customerName,source,destination);
+    travel(driverArr,customerNames,source,destination);
 }
 int main()
 {
@@ -210,7 +255,7 @@ int main()
         pair<int,int> q;
         unordered_set<string> persons;
         string name;
-        cout<<"enter the name please"<<endl;
+        cout<<"enter the passenger name please"<<endl;
         cin>>name;
         if(persons.find(name)!= persons.end())
         {
