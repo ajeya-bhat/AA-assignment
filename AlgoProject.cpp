@@ -5,7 +5,7 @@
 #include<unordered_map>
 #include<utility>
 using namespace std;
-
+vector<string> notPicked;
 struct driver
 {
     string name;
@@ -87,6 +87,15 @@ int AllDriversFinishThereJourney(vector<pair<int,int> >& check,vector<driver>& d
     }
     return 1;
 }
+void checkNotPicked()
+{
+    int i=0;
+    while(i<notPicked.size())
+    {
+        cout<<notPicked[i]<<" is not picked and due to lack of seats , sorry"<<endl;
+        i=i+1;
+    }
+}
 void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<int,int> >& source,vector<pair<int,int> >& destination)
 {
     vector<pair<int,int> > index;
@@ -115,6 +124,11 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
             {
                 pair<int,int> p;
                 p=make_pair(driverArr[k].is,driverArr[k].js);
+                if(driverArr[k].assign.size() <= index[k].second)
+                {
+                    k=k+1;
+                    continue;
+                }
                 dist=absoluteDistance(p, driverArr[k].assign[index[k].second]);
                 if(dist < min)
                 {
@@ -128,7 +142,7 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
             {
                 pair<int,int> p;
                 p=make_pair(driverArr[k].is,driverArr[k].js);
-                if(index[k].first ==1 && index[k].second == driverArr[k].drop.size())
+                if(index[k].first ==1 && index[k].second >= driverArr[k].drop.size())
                 {
                     k=k+1;
                     continue;
@@ -150,7 +164,10 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
             driverArr[ind].js=driverArr[ind].assign[index[ind].second].second;
             int in=findIndex(source,driverArr[ind].assign[index[ind].second]);
             if(in==-1)
-                cout<<"its -1"<<endl;
+            {
+                 cout<<"its -1 from source"<<endl;
+                cout<<"hello ="<<driverArr[ind].assign[index[ind].second].first<<"  "<<driverArr[ind].assign[index[ind].second].second<<endl;
+            }
             cout<<driverArr[ind].name<<" is picking up "<<customerNames[in]<<endl;
             //cout<<"before= "<<index[ind].second<<endl;
             index[ind].second=index[ind].second+1;
@@ -168,12 +185,14 @@ void travel(vector<driver>& driverArr,vector<string>& customerNames,vector<pair<
             driverArr[ind].js=driverArr[ind].drop[index[ind].second].second;
             int in=findIndex(destination,driverArr[ind].drop[index[ind].second]);
             if(in==-1)
-                cout<<"its -1"<<endl;
+            {
+                 cout<<"its -1 from drop"<<endl;
+            }
             cout<<driverArr[ind].name<<" is dropping "<<customerNames[in]<<endl;
             index[ind].second=index[ind].second+1;
         }
     }
-
+    checkNotPicked();
 }
 void assigningPassengers(vector<pair<int,int>>& source , vector<pair<int,int>>& destination ,vector<string>& customerNames,vector<driver>& driverArr)
 {
@@ -185,11 +204,14 @@ void assigningPassengers(vector<pair<int,int>>& source , vector<pair<int,int>>& 
         int index=findNearestDriverWithSeats(driverArr,p);
         if(index == -1)
         {
-            
+            notPicked.push_back(customerNames[i]);
         }
-        driverArr[index].assign.push_back(p);
-        driverArr[index].drop.push_back(destination[i]);
-        driverArr[index].seats= driverArr[index].seats-1;
+        else
+        {
+            driverArr[index].assign.push_back(p);
+            driverArr[index].drop.push_back(destination[i]);
+            driverArr[index].seats= driverArr[index].seats-1;
+        }
         i=i+1;
     }
     int j=0;
