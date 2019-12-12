@@ -239,17 +239,6 @@ void assigningPassengers(vector<pair<int,int>>& source , vector<pair<int,int>>& 
         }
         i=i+1;
     }
-    int j=0;
-    while(j<driverArr.size())
-    {
-        int k=0;
-        while(k<driverArr[j].assign.size())
-        {
-            cout<<driverArr[j].assign[k].first<<" "<<driverArr[j].assign[k].second<<endl;
-            k=k+1;
-        }
-        j=j+1;
-    }
     travel(driverArr,customerNames,source,destination);
 }
 int main()
@@ -265,6 +254,7 @@ int main()
     vector<pair<int,int>>   destination;
     vector<string> customerNames;
     vector<driver> driverArr;
+    unordered_set<string> persons;
     int numDrivers;
     cout<<"enter the number of drivers"<<endl;
     cin>>numDrivers;
@@ -300,7 +290,6 @@ int main()
     {
         pair<int,int> p;
         pair<int,int> q;
-        unordered_set<string> persons;
         string name;
         cout<<"enter the passenger name please"<<endl;
         cin>>name;
@@ -309,7 +298,6 @@ int main()
             cout<<"This name already exists,Please enter a new name"<<endl;
             continue;
         }
-        persons.insert(name);
         cout<<"enter the pickup points"<<endl;
         int is;
         int js;
@@ -330,6 +318,7 @@ int main()
         customerNames.push_back(name);
         source.push_back(p);
         destination.push_back(q);
+        persons.insert(name);
         i=i+1;
     }
     assigningPassengers(source,destination,customerNames,driverArr);
